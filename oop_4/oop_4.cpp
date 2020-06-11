@@ -89,25 +89,30 @@ template <typename T1, typename T2>
 void TextFile<T1, T2>::sortData(int props) {
 	FILE* f = std::fopen(this->fileName, "r+");
 	Element<T1, T2> left, right;
-	for (int i = 0; i < count; i++)
-	{
-		std::fseek(f, i * (sizeof(Element<T1, T2>)), SEEK_SET);
-		std::fread(&left, sizeof(Element<T1, T2>), 1, f);
-		for (int j = count - 1; j > i; j--)
+	try {
+		for (int i = 0; i < count; i++)
 		{
-			std::fseek(f, j * (sizeof(Element<T1, T2>)), SEEK_SET);
-			std::fread(&right, sizeof(Element<T1, T2>), 1, f);
-			if (compare(left, right, props))
+			std::fseek(f, i * (sizeof(Element<T1, T2>)), SEEK_SET);
+			std::fread(&left, sizeof(Element<T1, T2>), 1, f);
+			for (int j = count - 1; j > i; j--)
 			{
 				std::fseek(f, j * (sizeof(Element<T1, T2>)), SEEK_SET);
-				std::fwrite(&left, sizeof(Element<T1, T2>), 1, f);
-				std::fseek(f, i * (sizeof(Element<T1, T2>)), SEEK_SET);
-				std::fwrite(&right, sizeof(Element<T1, T2>), 1, f);
-				left = right;
+				std::fread(&right, sizeof(Element<T1, T2>), 1, f);
+				if (compare(left, right, props))
+				{
+					std::fseek(f, j * (sizeof(Element<T1, T2>)), SEEK_SET);
+					std::fwrite(&left, sizeof(Element<T1, T2>), 1, f);
+					std::fseek(f, i * (sizeof(Element<T1, T2>)), SEEK_SET);
+					std::fwrite(&right, sizeof(Element<T1, T2>), 1, f);
+					left = right;
+				}
 			}
 		}
+		std::fclose(f);
 	}
-	std::fclose(f);
+	catch (char* str) {
+		cout << str << endl;
+	}
 }
 
 template <typename T1, typename T2>
@@ -129,17 +134,20 @@ void TextFile<T1, T2>::showData() {
 		FILE* f;
 		Element<T1, T2> object;
 		f = fopen(this->fileName, "rb");
+		try {
+			if (f == NULL)
+				throw "Файл не найден";
 
-		if (f == NULL)
-			throw "Файл не найден";
+			cout << setw(15) << "ФИО" << setw(15) << "Должность" << setw(15) << "Отдел" << setw(15) << "Стаж" << setw(15) << endl;
 
-		cout << setw(15) << "ФИО" << setw(15) << "Должность" << setw(15) << "Отдел" << setw(15) << "Стаж" << setw(15) << endl;
-
-		for (int i = 0; i < count; i++) {
-			fread(&object, sizeof(Element<T1, T2>), 1, f);
-			cout << setw(15) << object.doljn << setw(15) << object.firstName << setw(15) << object.otdel << setw(15) << object.staj << endl;
+			for (int i = 0; i < count; i++) {
+				fread(&object, sizeof(Element<T1, T2>), 1, f);
+				cout << setw(15) << object.doljn << setw(15) << object.firstName << setw(15) << object.otdel << setw(15) << object.staj << endl;
+			}
 		}
-
+		catch (char* str) {
+			cout << str << endl;
+		}
 		cout << endl;
 		std::fclose(f);
 	}
